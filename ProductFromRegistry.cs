@@ -23,7 +23,9 @@ namespace ProductFromRegistry
         }
 
         public  IEnumerable<SoftwareProductInstalled> GetSoft()
+
         {
+           string DisplayVersion, InstallDate, ModDate;
             foreach (string computer in Computername)
             {
                 using (RegistryKey r = RegistryKey.OpenRemoteBaseKey(RegistryHive.LocalMachine, computer).OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall"))
@@ -36,17 +38,11 @@ namespace ProductFromRegistry
 
                             if (rr.GetValue("DisplayName") != null)
                             {
-                                if (rr.GetValue("DisplayVersion") == null || rr.GetValue("InstallDate") == null || rr.GetValue("InstallDate").ToString().Length < 8)
-                                {
-                                    yield return new SoftwareProductInstalled() { DisplayName = rr.GetValue("DisplayName").ToString(), DisplayVersion = "", InstallDate = "" , RemoteServer =computer};
-                                }
+                                DisplayVersion = rr.GetValue("DisplayVersion") == null ? "" : rr.GetValue("DisplayVersion").ToString();
+                                InstallDate = rr.GetValue("InstallDate") == null ? "" : rr.GetValue("InstallDate").ToString();
+                                ModDate = InstallDate.Length < 8 ? "" : (DateTime.ParseExact(InstallDate, "yyyyMMdd", null)).ToShortDateString();
 
-                                else
-                                {
-                                    yield return new SoftwareProductInstalled() { DisplayName = rr.GetValue("DisplayName").ToString(), DisplayVersion = rr.GetValue("DisplayVersion").ToString(), InstallDate = (DateTime.ParseExact((string)rr.GetValue("InstallDate"), "yyyyMMdd", null)).ToShortDateString(), RemoteServer=computer };
-
-                                
-                                }
+                                yield return new SoftwareProductInstalled { DisplayName = rr.GetValue("DisplayName").ToString(), DisplayVersion = DisplayVersion, InstallDate = ModDate, RemoteServer = computer };
                             }
 
                         }
